@@ -1,0 +1,28 @@
+const cacheName = 'flip-clock-cache-v1';
+const assetsToCache = [
+  './',
+  './index.html',
+  './manifest.json',
+  './style.css',  // Update this path to your actual CSS file
+  './script.js',  // Update this path to your actual JS file
+  './icon-192.png',
+  './icon-512.png'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(cacheName)
+      .then(cache => {
+        return cache.addAll(assetsToCache);
+      })
+  );
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        return response || fetch(event.request);
+      })
+  );
+});
