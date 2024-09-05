@@ -6,19 +6,34 @@
     <title>Classic Flip Clock</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Your existing CSS */
+        body {
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+        }
+        #clock {
+            font-size: 10rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div id="clock-container">
-        <!-- Your existing clock code -->
-    </div>
+    <div id="clock">00:00</div>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(error => console.error('Service Worker Registration failed:', error));
+        function updateClock() {
+            const clock = document.getElementById('clock');
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            clock.textContent = `${hours}:${minutes}`;
         }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call to display the clock immediately
     </script>
 </body>
 </html>
