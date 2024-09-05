@@ -9,6 +9,7 @@
         body {
             font-family: 'Roboto Mono', monospace;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
@@ -16,24 +17,89 @@
             background-color: #000;
             color: #fff;
         }
+
+        #clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         #clock {
             font-size: 10rem;
             font-weight: bold;
         }
+
+        #controls {
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
-    <div id="clock">00:00</div>
+    <div id="clock-container">
+        <div id="clock">00:00</div>
+        <div id="controls">
+            <button id="formatToggle">Toggle 12/24 Hour</button>
+            <button id="orientationToggle">Toggle Orientation</button>
+            <button id="screensaverToggle">Keep Awake</button>
+        </div>
+    </div>
+
     <script>
+        let is24Hour = false;
+        let isHorizontal = false;
+
         function updateClock() {
             const clock = document.getElementById('clock');
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
+            let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            clock.textContent = `${hours}:${minutes}`;
+
+            if (!is24Hour) {
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                clock.textContent = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+            } else {
+                clock.textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
+            }
         }
+
         setInterval(updateClock, 1000);
-        updateClock(); // Initial call to display the clock immediately
+        updateClock();
+
+        // Toggle 12/24 Hour Format
+        document.getElementById('formatToggle').addEventListener('click', () => {
+            is24Hour = !is24Hour;
+            updateClock();
+        });
+
+        // Toggle Orientation
+        document.getElementById('orientationToggle').addEventListener('click', () => {
+            const clockContainer = document.getElementById('clock-container');
+            isHorizontal = !isHorizontal;
+            clockContainer.style.flexDirection = isHorizontal ? 'row' : 'column';
+        });
+
+        // Keep Awake (Placeholder)
+        document.getElementById('screensaverToggle').addEventListener('click', () => {
+            alert("This feature requires additional code for 'Keep Awake'.");
+        });
     </script>
 </body>
 </html>
