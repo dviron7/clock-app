@@ -3,7 +3,7 @@
 
 ## Created by Dvir Sharon
 
-Welcome to the **Refined Flip Clock**, a sleek, minimalist digital clock app designed for those who love simplicity and elegance. This project is all about providing a visually appealing and functional clock with a touch of customization.
+Welcome to the **Minimalist Flip Clock**, a sleek, minimalist digital clock app designed for those who love simplicity and elegance. This project is all about providing a visually appealing and functional clock with a touch of customization.
 
 ## Features
 
