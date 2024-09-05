@@ -38,7 +38,7 @@
 
         #clock {
             display: flex;
-            font-size: clamp(4rem, 15vw, 10rem);
+            font-size: 100px; /* Base size, will be adjusted by JavaScript */
             font-weight: bold;
         }
 
@@ -49,7 +49,7 @@
             border-radius: 10px;
             position: relative;
             overflow: hidden;
-            color: #fff; /* Always white, even in light mode */
+            color: #fff;
         }
 
         .digit::after {
@@ -59,7 +59,7 @@
             right: 0;
             top: 50%;
             height: 2px;
-            background-color: #101010; /* Changed to #101010 */
+            background-color: #101010;
         }
 
         .separator {
@@ -72,14 +72,7 @@
             font-size: 0.3em;
             position: absolute;
             bottom: 5px;
-            right: 5px;
-        }
-
-        .ampm.top-left {
-            bottom: auto;
-            top: 5px;
-            right: auto;
-            left: 5px;
+            left: 5px; /* Changed to left */
         }
 
         #controls {
@@ -98,7 +91,7 @@
             opacity: 0;
         }
 
-        #controls button {
+        #controls button, #controls input {
             font-family: 'Roboto Mono', monospace;
             font-size: 0.9rem;
             padding: 8px;
@@ -121,27 +114,19 @@
             font-size: 1.5rem;
         }
 
+        #size_range_slider {
+            width: 100px;
+        }
+
         @media (max-width: 600px) {
             #clock {
-                font-size: clamp(3rem, 12vw, 5rem);
+                font-size: 60px; /* Adjusted base size for mobile */
             }
 
-            #controls button {
+            #controls button, #controls input {
                 font-size: 0.8rem;
                 padding: 6px;
             }
-        }
-
-        .horizontal {
-            flex-direction: row !important;
-        }
-
-        .horizontal #clock-container {
-            flex-direction: column !important;
-        }
-
-        .horizontal #clock {
-            font-size: clamp(3rem, 8vw, 7rem);
         }
     </style>
 </head>
@@ -162,6 +147,7 @@
             <button id="focusToggle">Focus</button>
             <button id="exitFocusToggle" style="display: none;">Exit Focus Mode</button>
             <button class="sun-moon-toggle" id="themeToggle">🌞</button>
+            <input type="range" id="size_range_slider" min="25" max="120" step="10" title="Size" value="100" oninput="clock_size()">
         </div>
     </div>
 
@@ -197,8 +183,8 @@
             hours = hours.toString().padStart(2, '0');
             let minutes = now.getMinutes().toString().padStart(2, '0');
 
-            hour1.textContent = hours[0];
-            hour2.innerHTML = `${hours[1]}${!is24Hour ? `<span class="ampm ${!is24Hour ? 'top-left' : ''}">${ampm}</span>` : ''}`;
+            hour1.innerHTML = `${hours[0]}${!is24Hour ? `<span class="ampm">${ampm}</span>` : ''}`;
+            hour2.textContent = hours[1];
             minute1.textContent = minutes[0];
             minute2.textContent = minutes[1];
         }
@@ -248,7 +234,7 @@
             if (!isPomodoroActive) {
                 startPomodoro();
             } else {
-                pausePomodoro();
+                togglePomodoroHold();
             }
         });
 
@@ -258,15 +244,22 @@
 
         function startPomodoro() {
             isPomodoroActive = true;
-            document.getElementById('focusToggle').textContent = 'Break';
+            document.getElementById('focusToggle').textContent = 'Hold';
             document.getElementById('exitFocusToggle').style.display = 'inline-block';
             updatePomodoroDisplay();
             pomodoroTimer = setInterval(updatePomodoroDisplay, 1000);
         }
 
-        function pausePomodoro() {
-            clearInterval(pomodoroTimer);
-            document.getElementById('focusToggle').textContent = 'Resume';
+        function togglePomodoroHold() {
+            if (pomodoroTimer) {
+                clearInterval(pomodoroTimer);
+                pomodoroTimer = null;
+                document.getElementById('focusToggle').textContent = 'Resume';
+            } else {
+                updatePomodoroDisplay();
+                pomodoroTimer = setInterval(updatePomodoroDisplay, 1000);
+                document.getElementById('focusToggle').textContent = 'Hold';
+            }
         }
 
         function resetPomodoro() {
@@ -305,6 +298,12 @@
         document.addEventListener('mousemove', resetIdleTimer);
         document.addEventListener('click', resetIdleTimer);
         resetIdleTimer();
+
+        // Clock size adjustment
+        function clock_size() {
+            const size = document.getElementById('size_range_slider').value;
+            document.getElementById('clock').style.fontSize = `${size}px`;
+        }
 
         setInterval(updateClock, 1000);
         updateClock();
