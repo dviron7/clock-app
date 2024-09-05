@@ -33,6 +33,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
 
         #clock {
@@ -73,6 +74,13 @@
             right: 5px;
         }
 
+        .ampm.top-left {
+            bottom: auto;
+            top: 5px;
+            right: auto;
+            left: 5px;
+        }
+
         #controls {
             display: flex;
             flex-wrap: wrap;
@@ -81,6 +89,12 @@
             background-color: rgba(26, 26, 26, 0.5);
             padding: 10px;
             border-radius: 10px;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        #controls.fade {
+            opacity: 0;
         }
 
         #controls select, #controls button {
@@ -97,6 +111,13 @@
 
         #controls select:hover, #controls button:hover {
             background-color: #444;
+        }
+
+        .sun-moon-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
         }
 
         @media (max-width: 600px) {
@@ -138,6 +159,8 @@
             <button id="formatToggle">AM/PM</button>
             <button id="orientationToggle">Flip</button>
             <button id="screensaverToggle">Always on Display</button>
+            <button id="focusToggle">Focus</button>
+            <button class="sun-moon-toggle" id="themeToggle">🌞</button>
         </div>
     </div>
 
@@ -145,8 +168,15 @@
         let is24Hour = true;
         let isHorizontal = false;
         let wakeLock = null;
-
+        let isLightMode = false;
+        let idleTimeout = null;
+        let isPomodoroActive = false;
+        let pomodoroTimer;
+        
+        // Function to update the clock
         function updateClock() {
+            if (isPomodoroActive) return; // Skip clock update if Pomodoro is active
+
             const date = document.getElementById('date');
             const hour1 = document.getElementById('hour1');
             const hour2 = document.getElementById('hour2');
@@ -157,10 +187,9 @@
             let now = new Date();
 
             if (selectedCountry !== 'local') {
-                now = new Date(now.toLocaleString('en-US', { timeZone: selectedCountry }));
+                now = new Date(new Date().toLocaleString('en-US', { timeZone: selectedCountry }));
             }
 
-            // Update date
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             date.textContent = now.toLocaleDateString('en-US', options);
 
@@ -174,7 +203,7 @@
             let minutes = now.getMinutes().toString().padStart(2, '0');
 
             hour1.textContent = hours[0];
-            hour2.innerHTML = `${hours[1]}${!is24Hour ? `<span class="ampm">${ampm}</span>` : ''}`;
+            hour2.innerHTML = `${hours[1]}${!is24Hour ? `<span class="ampm ${!is24Hour ? 'top-left' : ''}">${ampm}</span>` : ''}`;
             minute1.textContent = minutes[0];
             minute2.textContent = minutes[1];
         }
@@ -222,6 +251,64 @@
                 document.getElementById('screensaverToggle').textContent = 'Always on Display';
             }
         });
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            isLightMode = !isLightMode;
+            document.body.style.backgroundColor = isLightMode ? '#fff' : '#000';
+            document.body.style.color = isLightMode ? '#000' : '#fff';
+            document.getElementById('themeToggle').textContent = isLightMode ? '🌜' : '🌞';
+        });
+
+        // Pomodoro Timer
+        document.getElementById('focusToggle').addEventListener('click', () => {
+            if (!isPomodoroActive) {
+                startPomodoro();
+            } else {
+                resetPomodoro();
+            }
+        });
+
+        function startPomodoro() {
+            isPomodoroActive = true;
+            document.getElementById('focusToggle').textContent = 'Break';
+            document.getElementById('clock').style.display = 'none';
+            let timeRemaining = 25 * 60; // 25 minutes
+            pomodoroTimer = setInterval(() => {
+                if (timeRemaining <= 0) {
+                    resetPomodoro();
+                    alert('Pomodoro session complete! Take a break.');
+                }
+                const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+                document.getElementById('minute1').textContent = minutes[0];
+                document.getElementById('minute2').textContent = minutes[1];
+                document.getElementById('hour1').textContent = seconds[0];
+                document.getElementById('hour2').textContent = seconds[1];
+                timeRemaining--;
+            }, 1000);
+        }
+
+        function resetPomodoro() {
+            isPomodoroActive = false;
+            clearInterval(pomodoroTimer);
+            document.getElementById('clock').style.display = 'flex';
+            document.getElementById('focusToggle').textContent = 'Focus';
+            updateClock();
+        }
+
+        // Fade Out Buttons after inactivity
+        function resetIdleTimer() {
+            clearTimeout(idleTimeout);
+            document.getElementById('controls').classList.remove('fade');
+            idleTimeout = setTimeout(() => {
+                document.getElementById('controls').classList.add('fade');
+            }, 5000);
+        }
+
+        document.addEventListener('mousemove', resetIdleTimer);
+        document.addEventListener('click', resetIdleTimer);
+        resetIdleTimer();
 
         document.getElementById('country').addEventListener('change', updateClock);
 
